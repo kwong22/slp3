@@ -5,7 +5,7 @@ import sys
 
 def minimum_edit_distance(x, y):
     """
-    Compute the minimum edit distance between two strings.
+    Compute the minimum edit distance between two strings (case-insensitive).
 
     Inputs:
     - x: first string
@@ -15,6 +15,7 @@ def minimum_edit_distance(x, y):
     - the minimum edit distance between the two strings
     """
     N, M = len(x), len(y)
+    X, Y = x.upper(), y.upper() # case-insensitive
 
     # Cost values for edit operations
     ins_cost = 1 # insertion cost
@@ -35,7 +36,7 @@ def minimum_edit_distance(x, y):
         for j in range(1, dist_matrix.shape[1]):
             dist_matrix[i, j] = np.amin([dist_matrix[i, j-1] + ins_cost,
                     dist_matrix[i-1, j] + del_cost,
-                    dist_matrix[i-1, j-1] + (x[i-1] != y[j-1]) * sub_cost])
+                    dist_matrix[i-1, j-1] + (X[i-1] != Y[j-1]) * sub_cost])
 
     # Return distance at end of matrix
     return dist_matrix[N, M]
