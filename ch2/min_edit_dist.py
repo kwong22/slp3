@@ -3,24 +3,42 @@
 import numpy as np
 import sys
 
-def minimum_edit_distance(x, y):
+def to_upper(x):
     """
-    Compute the minimum edit distance between two strings (case-insensitive).
+    Convert input to uppercase.
 
     Inputs:
-    - x: first string
-    - y: second string
+    - x: string or list of strings
 
     Returns:
-    - the minimum edit distance between the two strings
+    - uppercase version of x
+    """
+
+    if isinstance(x, str):
+        return x.upper()
+    elif isinstance(x, list):
+        return [el.upper() for el in x]
+    else:
+        raise TypeError('Input is not type str or list')
+
+def minimum_edit_distance(x, y):
+    """
+    Compute the minimum edit distance between two sequences (case-insensitive).
+
+    Inputs:
+    - x: first sequence (string or list of strings)
+    - y: second sequence (string or list of strings)
+
+    Returns:
+    - the minimum edit distance between the two sequences
     """
     N, M = len(x), len(y)
-    X, Y = x.upper(), y.upper() # case-insensitive
+    X, Y = to_upper(x), to_upper(y) # case-insensitive
 
     # Cost values for edit operations
     ins_cost = 1 # insertion cost
     del_cost = 1 # deletion cost
-    sub_cost = 2 # substitution cost
+    sub_cost = 1 # substitution cost
 
     # Create distance matrix, expand to include empty string
     dist_matrix = np.zeros((N+1, M+1), dtype=np.int32)
@@ -41,7 +59,9 @@ def minimum_edit_distance(x, y):
     # Return distance at end of matrix
     return dist_matrix[N, M]
 
-if len(sys.argv) == 3:
-    print(minimum_edit_distance(sys.argv[1], sys.argv[2]))
-else:
-    raise ValueError('Invalid number of arguments: %d' % len(sys.argv))
+# Only run if executed directly, not when imported
+if __name__ == '__main__':
+    if len(sys.argv) == 3:
+        print(minimum_edit_distance(sys.argv[1], sys.argv[2]))
+    else:
+        raise ValueError('Invalid number of arguments: %d' % len(sys.argv))

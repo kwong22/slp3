@@ -110,11 +110,12 @@ def align(x, y):
 
     return ''.join(string1), ''.join(string2), ''.join(alignment)
 
-if len(sys.argv) == 3:
-    str1, str2, alignment = align(sys.argv[1], sys.argv[2])
-    print(str1)
-    print('|' * len(str1))
-    print(str2)
-    print(alignment)
-else:
-    raise ValueError('Invalid number of arguments: %d' % len(sys.argv))
+if __name__ == '__main__':
+    if len(sys.argv) == 3:
+        str1, str2, alignment = align(sys.argv[1], sys.argv[2])
+        print(str1)
+        print('|' * len(str1))
+        print(str2)
+        print(alignment)
+    else:
+        raise ValueError('Invalid number of arguments: %d' % len(sys.argv))

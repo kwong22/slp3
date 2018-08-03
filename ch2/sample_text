@@ -1,0 +1,8 @@
+Write regular expressions for the following languages. You may use either Perl/Python notation or the minimal “algebraic” notation of Section 2.3, but make sure to say which one you are using. By “word”, we mean an alphabetic string separated from other words by whitespace, any relevant punctuation, line breaks, and so forth.
+This chapter introduced a fundamental tool in language processing, the regular expression, and showed how to perform basic text normalization tasks including word segmentation and normalization, sentence segmentation, and stemming.
+We also introduce the important minimum edit distance algorithm for comparing strings. Here’s a summary of the main points we covered about these ideas:
+The regular expression language is a powerful tool for pattern-matching.
+Basic operations in regular expressions include concatenation of symbols, disjunction of symbols ([], |, and .), counters (*, +, and {n,m}), anchors (ˆ, $) and precedence operators ((,)).
+Word tokenization and normalization are generally done by cascades of simple regular expressions substitutions or finite automata.
+The Porter algorithm is a simple and efficient way to do stemming, stripping off affixes. It does not have high accuracy but may be useful for some tasks.
+The minimum edit distance between two strings is the minimum number of operations it takes to edit one into the other. Minimum edit distance can be computed by dynamic programming, which also results in an alignment of the two strings.
