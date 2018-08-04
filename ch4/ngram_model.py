@@ -1,18 +1,24 @@
 #!/usr/bin/python
 
+from itertools import product
 import numpy as np
 import pandas as pd
 import sys
 
-def tokenize(filename, keepcase=True, N=1):
+def tokenize(filename, keepcase=True, N=1, vocab=None):
     """
-    Split file into tokens, adding sentence boundaries as necessary.
+    Split file into tokens, adding unknown symbols and sentence boundaries as
+    necessary.
 
     Inputs:
     - filename: name of the file to read from
     - keepcase: True to keep case of letters
         False to convert all letters to uppercase
     - N: number of words to include in N-grams, at least 1
+    - vocab: list of known words
+        if vocab is None, then unknown-symbols are added to the output in place
+        of tokens not in the vocabulary. Otherwise, all tokens are added to the
+        output.
 
     Returns:
     - output: list of tokens from the file
@@ -29,10 +35,19 @@ def tokenize(filename, keepcase=True, N=1):
 
     start_symbol = '<s>'
     end_symbol = '</s>'
+    unk_symbol = '<UNK>'
 
-    # Add sentence boundaries
     for token in tokens:
-        output.append(token)
+        # If vocabulary is given, replace unknown tokens with <UNK>
+        if vocab is not None:
+            if token in vocab:
+                output.append(token)
+            else:
+                output.append(unk_symbol)
+        else:
+            output.append(token)
+
+        # Add sentence boundaries
         end_punctuation = ['.', '?', '!']
         if token in end_punctuation:
             # Add end-symbol to end of sentence
@@ -97,22 +112,26 @@ def train_ngram_model(corpus, N=1, k=0):
     Returns:
     - probs: probability estimations for N-grams
     """
-    mgrams = build_ngrams(corpus, N=N-1) # (N-1)-grams
-    ngrams = build_ngrams(corpus, N=N) # N-grams
+    # Get unique words in the corpus
+    vocab = np.unique(corpus)
 
-    # Get unique values and counts for the N-grams and (N-1)-grams
-    m_values, m_counts = count_ngrams(mgrams)
+    unk_symbol = '<UNK>'
+    vocab = np.append(vocab, unk_symbol)
+
+    # Form all possible (N-1)-grams from the vocabulary
+    prods = list(product(vocab, repeat=N-1))
+    prev_grams = np.array([' '.join(prod) for prod in prods])
+
+    # Build and count the N-grams in the corpus
+    ngrams = build_ngrams(corpus, N=N)
     n_values, n_counts = count_ngrams(ngrams)
 
-    # Get unique last words in N-grams for predicting from all (N-1)-grams
-    next_words = np.unique([ngram.split(' ')[-1] for ngram in n_values])
+    probs = np.zeros((len(prev_grams), len(vocab)))
 
-    probs = np.zeros((len(m_values), len(next_words)))
-
-    # Place counts into matrix
-    for i in range(len(m_values)):
-        for j in range(len(next_words)):
-            next_sequence = ' '.join((m_values[i], next_words[j])).strip()
+    # Place counts into corresponding matrix entries
+    for i in range(len(prev_grams)):
+        for j in range(len(vocab)):
+            next_sequence = ' '.join((prev_grams[i], vocab[j])).strip()
             if next_sequence in n_values:
                 probs[i, j] = n_counts[np.where(n_values == next_sequence)]
 
@@ -120,7 +139,7 @@ def train_ngram_model(corpus, N=1, k=0):
     probs += k # add-k smoothing
     probs /= np.sum(probs, axis=1, keepdims=True)
 
-    return m_values, next_words, probs
+    return prev_grams, vocab, probs
 
 def print_table(row_names, col_names, entries):
     """
@@ -162,16 +181,17 @@ def generate_sentence(corpus_file, N, k, max_len=50):
     - string containing words sampled from the model
     """
     tokens = tokenize(corpus_file, N=N)
-    prev_grams, next_words, probs = train_ngram_model(tokens, N=N, k=k)
+    prev_grams, vocab, probs = train_ngram_model(tokens, N=N, k=k)
 
+    start_symbol = '<s>'
     end_symbol = '</s>'
 
     # Store sampled words in a list
     words = []
 
-    # Randomly initialize with an (N-1)-gram
-    seed_gram = np.random.choice(prev_grams)
-    words = seed_gram.split(' ')
+    # Initialize with start-symbols
+    for _ in range(N-1):
+        words.append(start_symbol)
 
     # Sample words until end-symbol is chosen or max sentence length is reached
     num_words = len(words)
@@ -183,15 +203,55 @@ def generate_sentence(corpus_file, N, k, max_len=50):
         # No probability distribution if unigram model
         prob_dist = None
         if prev_gram in prev_grams:
-            ind = np.where(prev_grams == prev_gram)
-            prob_dist = probs[ind].flatten()
+            prob_dist = probs[np.where(prev_grams == prev_gram)].flatten()
 
-        next_word = np.random.choice(next_words, p=prob_dist)
+        next_word = np.random.choice(vocab, p=prob_dist)
         words.append(next_word)
 
         num_words += 1
 
     return ' '.join(words)
+
+def compute_perplexity(train_file, N, k, test_file):
+    """
+    Train N-gram model with a corpus, then compute perplexity of the model on a
+    test corpus.
+
+    Inputs:
+    - train_file: file containing training corpus
+    - N: number of words to include in N-grams
+    - k: number to add to all N-gram counts
+    - test_file: file containing test corpus
+
+    Returns:
+    - perp: perplexity of the model on the test set
+    """
+    # Train N-gram model
+    tokens = tokenize(train_file, N=N)
+    prev_grams, vocab, probs = train_ngram_model(tokens, N=N, k=k)
+
+    # Build N-grams from test set
+    test_tokens = tokenize(test_file, N=N, vocab=vocab)
+    test_ngrams = build_ngrams(test_tokens, N=N)
+    num_test = len(test_ngrams)
+
+    test_probs = np.zeros(num_test)
+
+    # Retrieve probabilities for each N-gram in the test set
+    for i in range(num_test):
+        # Given previous N-1 words, find probability of next word
+        test_ngram = test_ngrams[i].split(' ')
+        prev_gram = ' '.join(test_ngram[:-1])
+        next_word = test_ngram[-1]
+
+        prev_ind = np.where(prev_grams == prev_gram)
+        next_ind = np.where(vocab == next_word)
+        test_probs[i] = probs[prev_ind, next_ind]
+
+    log_perp = 1 / num_test * np.sum(-np.log(test_probs))
+    perp = np.exp(log_perp)
+
+    return perp
 
 if __name__ == '__main__':
     if len(sys.argv) == 4:
@@ -199,5 +259,9 @@ if __name__ == '__main__':
         sentence = generate_sentence(sys.argv[1],
                 int(sys.argv[2]), float(sys.argv[3]))
         print(sentence)
+    elif len(sys.argv) == 5:
+        perp = compute_perplexity(sys.argv[1], int(sys.argv[2]),
+                float(sys.argv[3]), sys.argv[4])
+        print(perp)
     else:
         raise ValueError('Invalid number of arguments: %d' % len(sys.argv))
