@@ -16,9 +16,9 @@ def tokenize(filename, keepcase=True, N=1, vocab=None):
         False to convert all letters to uppercase
     - N: number of words to include in N-grams, at least 1
     - vocab: list of known words
-        if vocab is None, then unknown-symbols are added to the output in place
-        of tokens not in the vocabulary. Otherwise, all tokens are added to the
-        output.
+        if vocab is not None, then unknown-symbols are added to the output in
+        place of tokens not in the vocabulary. Otherwise, all tokens are added
+        to the output.
 
     Returns:
     - output: list of tokens from the file
