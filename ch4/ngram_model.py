@@ -5,6 +5,21 @@ import numpy as np
 import pandas as pd
 import sys
 
+"""
+Usage:
+    python ngram_model.py train_file N k
+        Trains an N-gram model and generates a sentence by sampling words from
+        the model.
+    python ngram_model.py train_file N k test_file
+        Trains an N-gram model and computes the perplexity of the model on a
+        test corpus.
+
+    train_file: name of file containing training corpus
+    N: number of words to contain in each N-gram
+    k: for add-k smoothing, the number to add to all counts of words
+    test_file: name of file containing test corpus
+"""
+
 def tokenize(filename, keepcase=True, N=1, vocab=None):
     """
     Split file into tokens, adding unknown symbols and sentence boundaries as

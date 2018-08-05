@@ -14,7 +14,7 @@ Usage:
         and uses the classifier to predict labels on test examples.
 
     train_file: name of file containing one training example per line
-        Each example should contain a number of space-delimited tokens.
+        Each example should contain space-delimited tokens.
         All but the last token are taken to be the input.
         The last token is taken to be the gold label.
     k: for add-k smoothing, the number to add to all counts of words
@@ -22,8 +22,8 @@ Usage:
         train a binary multinomial NB classifier if binary is 1
         train a multinomial NB classifier otherwise
     test_file: name of file containing one test example per line
-        Each example should contain a number of space-delimited tokens.
-        All of these tokens are taken as the input.
+        Each example should contain space-delimited tokens.
+        All tokens are taken as the input.
 """
 
 def tokenize(filename, keepcase=True, vocab=None):

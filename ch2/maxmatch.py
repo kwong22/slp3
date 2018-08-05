@@ -5,6 +5,19 @@ import sys
 
 from min_edit_dist import *
 
+"""
+Usage:
+    python maxmatch.py sentences dictionary
+        Segments sentences into words using the maximum matching (MaxMatch)
+        algorithm. Matches are case-insensitive.
+        For each sentence, compares segmentation of original sentence to
+        segmentation of sentence with whitespace removed to compute Word Error
+        Rate. Prints results.
+
+    sentences: name of file containing one sentence per line
+    dictionary: name of file containing dictionary, one word per line
+"""
+
 def read_lines_from_file(filename, keepcase=True):
     """
     Build a list of strings line-by-line from a file.

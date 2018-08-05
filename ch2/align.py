@@ -4,6 +4,17 @@ from enum import Enum
 import numpy as np
 import sys
 
+"""
+Usage:
+    python align.py source target
+        Aligns source and target words by computing minimum edit distance.
+        Prints the alignment, including the edit operations that transform the
+        source word into the target word.
+
+    source: source word
+    target: target word
+"""
+
 class Operation(Enum):
     INS = 1 # insertion
     DEL = 2 # deletion

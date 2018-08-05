@@ -3,6 +3,17 @@
 import numpy as np
 import sys
 
+"""
+Usage:
+    python min_edit_dist.py source target
+        Computes minimum edit distance between source and target words.
+        The possible edit operations are insertion, deletion, and substitution.
+        Each edit operation has a cost of 1.
+
+    source: source word
+    target: target word
+"""
+
 def to_upper(x):
     """
     Convert input to uppercase.
